@@ -1,33 +1,38 @@
-let throttle = require('lodash.throttle');
-let inputForm = document.querySelector('.feedback-form');
-let inputEmail = inputForm.querySelector('label > input');
-let inputText = inputForm.querySelector('label > textarea');
+var throttle = require('lodash.throttle');
+const feedbackForm = document.querySelector('.feedback-form');
 
-inputForm.addEventListener(
+const savedFormDataJSON = localStorage.getItem('feedback-form-state');
+const savedFormData = JSON.parse(savedFormDataJSON);
+
+if (savedFormData !== null) {
+  feedbackForm['email'].value = savedFormData.email;
+  feedbackForm['message'].value = savedFormData.message;
+}
+
+feedbackForm.addEventListener(
   'input',
-  throttle(() => {
-    let storedInput = {
-      email: inputEmail.value,
-      message: inputText.value,
+  throttle(event => {
+    const formData = {
+      email: `${feedbackForm['email'].value}`,
+      message: `${feedbackForm['message'].value}`,
     };
-    localStorage.setItem('feedback-form-state', JSON.stringify(storedInput));
+    const formDataJSON = JSON.stringify(formData);
+
+    localStorage.setItem('feedback-form-state', formDataJSON);
   }, 500)
 );
 
-let storedOutput = JSON.parse(localStorage.getItem('feedback-form-state'));
-
-if (localStorage.getItem('feedback-form-state') === null) {
-  inputEmail.value = '';
-  inputText.value = '';
-} else {
-  inputEmail.value = storedOutput.email;
-  inputText.value = storedOutput.message;
-}
-
-inputForm.addEventListener('submit', event => {
+feedbackForm.addEventListener('submit', event => {
   event.preventDefault();
-  console.log(localStorage.getItem('feedback-form-state'));
-  inputEmail.value = '';
-  inputText.value = '';
+
+  const formData = {
+    email: `${feedbackForm['email'].value}`,
+    message: `${feedbackForm['message'].value}`,
+  };
+  console.log(formData);
+
+  //remove data from localStorage and feedback-form
   localStorage.removeItem('feedback-form-state');
+  feedbackForm['email'].value = '';
+  feedbackForm['message'].value = '';
 });

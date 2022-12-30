@@ -1,29 +1,76 @@
+// const _ = require('lodash');
+
 import throttle from 'lodash.throttle';
 
-const form = document.querySelector('.feedback-form');
-form.addEventListener('input', throttle(onFormData, 500));
-form.addEventListener('submit', onSubmitForm);
+const feedbackForm = document.querySelector('.feedback-form');
 
-const formData = {};
+// submiting
+//
 
-function onFormData(e) {
-  formData[e.target.name] = e.target.value;
-  localStorage.setItem('feedback-form-state', JSON.stringify(formData));
-}
+feedbackForm.addEventListener('submit', handleSubmit);
 
-function onSubmitForm(e) {
-  console.log(JSON.parse(localStorage.getItem('feedback-form-state')));
-  e.preventDefault();
-  e.currentTarget.reset();
-  localStorage.removeItem('feedback-form-state');
-}
+function handleSubmit(event) {
+  event.preventDefault();
 
-(function dataFromLocalStorage() {
-  const data = JSON.parse(localStorage.getItem('feedback-form-state'));
-  const email = document.querySelector('.feedback-form input');
-  const message = document.querySelector('.feedback-form textarea');
-  if (data) {
-    email.value = data.email;
-    message.value = data.message;
+  const {
+    elements: { email, message },
+  } = event.target;
+
+  if (email.value === '' || message.value === '') {
+    return console.log('Please fill in all the fields!');
   }
-})();
+
+  console.log(
+    ` ------> submited email: "${email.value}", message: "${message.value}"`
+  );
+
+  localStorage.removeItem(localStorageLable);
+
+  event.target.reset();
+}
+
+// logging
+
+const localStorageLable = 'feedback-form-state';
+const localStorageFormData = localStorage.getItem(localStorageLable);
+
+let formData = JSON.parse(localStorageFormData);
+if (formData === null) {
+  formData = {
+    email: '',
+    message: '',
+  };
+}
+
+printFormData(formData);
+
+function printFormData(storage) {
+  document.querySelector('input[name=email]').value = storage.email;
+  document.querySelector('textarea[name=message]').textContent =
+    storage.message;
+}
+
+feedbackForm.addEventListener('input', throttle(logInputedString, 500));
+
+function logInputedString(e) {
+  const name = e.target.name;
+  const value = e.target.value;
+  switch (name) {
+    case 'email':
+      loggingEmailMessage(name, value);
+      break;
+
+    case 'message':
+      loggingEmailMessage(name, value);
+      break;
+
+    default:
+      break;
+  }
+}
+
+function loggingEmailMessage(name, value) {
+  formData[name] = value;
+
+  localStorage.setItem(localStorageLable, JSON.stringify(formData));
+}

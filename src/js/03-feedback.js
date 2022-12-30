@@ -1,38 +1,38 @@
-var throttle = require('lodash.throttle');
-const feedbackForm = document.querySelector('.feedback-form');
+// --------------------------IMPORTS---------------------------------------
+import throttle from 'lodash.throttle';
 
-const savedFormDataJSON = localStorage.getItem('feedback-form-state');
-const savedFormData = JSON.parse(savedFormDataJSON);
+// --------------------------EXPORT-----------------------------------------
+const formRef = document.querySelector('.feedback-form');
+const emailRef = document.querySelector('input[name="email"]');
+const messageRef = document.querySelector('textarea[name="message"]');
+const dataBase = {
+  email: '',
+  message: '',
+};
 
-if (savedFormData !== null) {
-  feedbackForm['email'].value = savedFormData.email;
-  feedbackForm['message'].value = savedFormData.message;
+// --------------------------FUNCTIONS-------------------------------------
+function validateForm(e) {
+  const { name, value } = e.target;
+  dataBase[name] = value;
+  localStorage.setItem('feedback-form-state', JSON.stringify(dataBase));
+}
+function submitForm(e) {
+  e.preventDefault();
+  e.currentTarget.reset();
+  console.log(dataBase);
+}
+function getDataBase() {
+  const getData = localStorage.getItem('feedback-form-state');
+  const parsedData = JSON.parse(getData);
+  if (parsedData) {
+    emailRef.value = parsedData.email;
+    messageRef.value = parsedData.message;
+  }
 }
 
-feedbackForm.addEventListener(
-  'input',
-  throttle(event => {
-    const formData = {
-      email: `${feedbackForm['email'].value}`,
-      message: `${feedbackForm['message'].value}`,
-    };
-    const formDataJSON = JSON.stringify(formData);
+// --------------------------EVENTS-----------------------------------------
+formRef.addEventListener('submit', submitForm);
 
-    localStorage.setItem('feedback-form-state', formDataJSON);
-  }, 500)
-);
+formRef.addEventListener('input', throttle(validateForm, 500));
 
-feedbackForm.addEventListener('submit', event => {
-  event.preventDefault();
-
-  const formData = {
-    email: `${feedbackForm['email'].value}`,
-    message: `${feedbackForm['message'].value}`,
-  };
-  console.log(formData);
-
-  //remove data from localStorage and feedback-form
-  localStorage.removeItem('feedback-form-state');
-  feedbackForm['email'].value = '';
-  feedbackForm['message'].value = '';
-});
+getDataBase();

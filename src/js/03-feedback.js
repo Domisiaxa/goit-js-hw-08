@@ -1,33 +1,41 @@
-let throttle = require('lodash.throttle');
-let inputForm = document.querySelector('.feedback-form');
-let inputEmail = inputForm.querySelector('label > input');
-let inputText = inputForm.querySelector('label > textarea');
+import throttle from 'lodash.throttle';
 
-inputForm.addEventListener(
-  'input',
-  throttle(() => {
-    let storedInput = {
-      email: inputEmail.value,
-      message: inputText.value,
-    };
-    localStorage.setItem('feedback-form-state', JSON.stringify(storedInput));
-  }, 500)
-);
+const form = document.querySelector('.feedback-form');
+const LOCALSTORAGE_KEY = 'feedback-form-state';
+const dataObject = {};
 
-let storedOutput = JSON.parse(localStorage.getItem('feedback-form-state'));
+updateFormData();
 
-if (localStorage.getItem('feedback-form-state') === null) {
-  inputEmail.value = '';
-  inputText.value = '';
-} else {
-  inputEmail.value = storedOutput.email;
-  inputText.value = storedOutput.message;
+form.addEventListener('input', throttle(saveFormData, 500));
+form.addEventListener('submit', sendForm);
+
+function saveFormData(event) {
+  event.preventDefault();
+  dataObject.email = form.elements.email.value;
+  dataObject.message = form.elements.message.value;
+  localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(dataObject));
 }
 
-inputForm.addEventListener('submit', event => {
+function updateFormData() {
+  const formData = localStorage.getItem(LOCALSTORAGE_KEY);
+  const email = form.elements.email;
+  const message = form.elements.message;
+
+  try {
+    const formValue = JSON.parse(formData);
+    email.value = formValue.email || '';
+    message.value = formValue.message || '';
+  } catch (error) {
+    console.log('localStorage data error');
+  }
+}
+
+function sendForm(event) {
   event.preventDefault();
-  console.log(localStorage.getItem('feedback-form-state'));
-  inputEmail.value = '';
-  inputText.value = '';
-  localStorage.removeItem('feedback-form-state');
-});
+  dataObject.email = form.elements.email.value;
+  dataObject.message = form.elements.message.value;
+  console.log(dataObject);
+
+  localStorage.removeItem(LOCALSTORAGE_KEY);
+  form.reset();
+}
